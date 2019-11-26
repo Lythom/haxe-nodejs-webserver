@@ -1,0 +1,5 @@
+-lib js-kit
+-lib hxnodejs 
+-main Main 
+-js main.js
+--macro npm.Package.export("package.json")

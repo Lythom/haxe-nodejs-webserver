@@ -1,0 +1,17 @@
+{
+	"main": "main.js",
+	"name": "haxe",
+	"description": "",
+	"dependencies": {
+		"body-parser": "^1.10.1",
+		"express": "~4.0",
+		"express-session": "~1.9.3"
+	},
+	"devDependencies": {},
+	"version": "1.0.0",
+	"author": "",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"license": "ISC"
+}
