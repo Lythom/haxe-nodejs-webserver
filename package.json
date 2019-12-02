@@ -11,7 +11,9 @@
 	"version": "1.0.0",
 	"author": "",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"start": "npx nodemon dist/main.js",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "haxe build.hxml"
 	},
 	"license": "ISC"
 }

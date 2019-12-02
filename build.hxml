@@ -1,5 +1,6 @@
 -lib js-kit
 -lib hxnodejs 
 -main Main 
--js main.js
+-js dist/main.js
+-debug
 --macro npm.Package.export("package.json")
