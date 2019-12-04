@@ -26,6 +26,10 @@ class Main {
 	static var db(default, never):MySQL = Node.require("mysql");
 
 	static function main() {
+		// load environment variables from .env file
+		// .env file must be present at the location the "node" command is run (Working directory)
+		Node.require('dotenv').config();
+
 		// create a connection to the database and start the connection immediatly
 		var connection = db.createConnection({
 			host: Sys.getEnv("DB_HOST"),

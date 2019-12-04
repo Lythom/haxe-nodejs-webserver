@@ -4,12 +4,12 @@
 
 1. Installer haxe depuis https://haxe.org. (Version 4.0.2 testée)
 2. Installer NodeJS depuis https://nodejs.org/en/ (Version 10.17.0 testée)
-
-3.
+3. Copier le fichier ".env.example" en ".env" et configurer le fichier pour votre environnement
+4.
 ```sh
 npm install
 haxe build.hxml
-npx nodemon main.js
+npx nodemon dist/main.js
 ```
 
 
