@@ -5,7 +5,6 @@ import js.npm.express.Response;
 import js.npm.Express;
 import js.npm.express.BodyParser;
 import js.npm.express.Session;
-
 import TypeDefinitions;
 
 extern class RequestWithSession extends Request {
@@ -48,10 +47,45 @@ class Main {
 			saveUninitialized: true
 		}));
 
+		/**
+		 * @api {get} /random Random
+		 * @apiDescription Return a random number between 0 and 1
+		 * @apiName Random
+		 * @apiGroup Random
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     0.546821
+		 */
 		server.get('/random', function(req:Request, res:Response) {
 			res.writeHead(200, {'Content-Type': 'text/plain'});
 			res.end(Std.string(Math.random()));
 		});
+
+		/**
+		 * @api {post} /login Login
+		 * @apiDescription Authenticate a registered user
+		 * @apiName Login
+		 * @apiGroup Users
+		 *
+		 * @apiParam {String} username Login used by the user
+		 * @apiParam {String} password Password to check
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     OK
+		 *
+		 * @apiError (Error 401) Unauthorized Authentication information doesn't match.
+		 * @apiError (Error 500) MissingInformation Could not register the user because some information is missing.
+		 * @apiError (Error 500) TechnicalError Could not create user because of technical error %s.
+		 *
+		 * @apiErrorExample Error-Response:
+		 *     HTTP/1.1 500 Unauthorized
+		 *     {
+		 *        "errorKey": "Unauthorized",
+		 *        "errorMessage": "Authentication information doesn't match.",
+		 *      }
+		 */
 		server.post('/login', function(expressReq:Request, res:Response) {
 			var req:RequestLogin = cast(expressReq);
 			switch (req.body) {
@@ -78,6 +112,31 @@ class Main {
 			}
 		});
 
+		/**
+		 * @api {post} /subscribe Subscribe
+		 * @apiDescription Register a new user
+		 * @apiName Subscribe
+		 * @apiGroup Users
+		 *
+		 * @apiParam {String} username Login that will be used by the user
+		 * @apiParam {String} password Password to use for authentication
+		 * @apiParam {String} email Email
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     OK
+		 *
+		 * @apiError (Error 500) MissingInformation Could not register the user because some information is missing.
+		 * @apiError (Error 500) UserCreationFailed Could not create nor find user %s.
+		 * @apiError (Error 500) TechnicalError Could not create user because of technical error %s.
+		 *
+		 * @apiErrorExample Error-Response:
+		 *     HTTP/1.1 500 MissingInformation
+		 *     {
+		 *        "errorKey": "MissingInformation",
+		 *        "errorMessage": "Could not register the user because some information is missing.",
+		 *      }
+		 */
 		server.post('/subscribe', function(expressReq:Request, res:Response) {
 			var req:RequestSubscribe = cast(expressReq);
 			switch (req.body) {
@@ -131,6 +190,4 @@ class Main {
 			connection.end();
 		});
 	}
-
-	
 }
