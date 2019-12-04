@@ -32,3 +32,8 @@ Pour configurer le débogueur depuis un projet vide :
 2. Cliquer sur l'onglet Debug de vscode
 3. Créer une nouvelle configuration pour NodeJS
 4. Modifier la valeur de `program` dans la configuration de `launch.json` pour indiquer le chemin du fichier main.js: `"program": "${workspaceFolder}\\dist\\main.js"`
+
+## Documentation
+
+Une documentation automatique des api peut être générée avec la commande 
+`npm run doc`
