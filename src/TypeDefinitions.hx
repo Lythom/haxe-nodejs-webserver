@@ -1,5 +1,19 @@
 import js.npm.express.Request;
 
+/**
+ * Application data model
+ */
+typedef User = {
+	var username:String;
+	var password:String;
+	var email:String;
+}
+
+/**
+ * Mysql externs for npm package "mysql"
+ * See documentation at https://github.com/mysqljs/mysql
+ * Those types are extrapolated (deduced) from usages seen on the documentation.
+ */
 typedef MySQLConfig = {
 	?host:String,
 	?port:Int,
@@ -21,16 +35,4 @@ typedef MySQLConnection = {
 	pause:(Dynamic->Void)->Void,
 	end:Void->Void,
 	query:String->?Array<Dynamic>->?(Dynamic->Dynamic->Array<Dynamic>->Void)->Dynamic
-}
-
-extern class RequestWithSession extends Request {
-	public var session:{authenticated:Bool};
-}
-
-extern class RequestLogin extends RequestWithSession {
-	public var body:{username:String, password:String};
-}
-
-extern class RequestSubscribe extends RequestWithSession {
-	public var body:{username:String, password:String, email:String};
 }

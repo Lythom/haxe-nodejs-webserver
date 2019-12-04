@@ -1,6 +1,4 @@
-import js.lib.Error;
-import haxe.ds.Either;
-import Externs;
+import db.UserDataAccessor;
 import js.Node;
 import js.npm.express.Request;
 import js.npm.express.Response;
@@ -8,28 +6,37 @@ import js.npm.Express;
 import js.npm.express.BodyParser;
 import js.npm.express.Session;
 
-typedef User = {
-	var username:String;
-	var password:String;
-	var email:String;
-} // TODO: parler de la mémoire dans les programmes
+import TypeDefinitions;
+
+extern class RequestWithSession extends Request {
+	public var session:{authenticated:Bool};
+}
+
+extern class RequestLogin extends RequestWithSession {
+	public var body:{username:String, password:String};
+}
+
+extern class RequestSubscribe extends RequestWithSession {
+	public var body:{username:String, password:String, email:String};
+}
 
 class Main {
-	static var db:MySQL = Node.require("mysql");
+	// Declare a static property with a get but no setter. See https://haxe.org/manual/class-field-property.html
+	// Act as a readonly singleton.
+	static var db(default, never):MySQL = Node.require("mysql");
 
 	static function main() {
-		var users:Array<User> = new Array<User>();
-
+		// create a connection to the database and start the connection immediatly
 		var connection = db.createConnection({
-			host: 'bosa3032.odns.fr',
-			user: 'bosa3032_bosa3032',
-			password: '&7gW3-Xb}]Zz',
-			database: 'bosa3032_devback'
+			host: Sys.getEnv("DB_HOST"),
+			user: Sys.getEnv("DB_USER"),
+			password: Sys.getEnv("DB_PASSWORD"),
+			database: Sys.getEnv("DB_NAME")
 		});
 		connection.connect();
 
+		// Setup express server with middlewares
 		var server:Express = new js.npm.Express();
-
 		server.use(BodyParser.json({limit: '5mb', type: 'application/json'}));
 		server.use(new Session({
 			secret: 'shhhh, very secret',
@@ -53,7 +60,7 @@ class Main {
 					req.session.authenticated = false;
 					res.send(400, "Bad Request");
 				case {username: username, password: password}:
-					userExists(connection, username, password, result -> switch (result) {
+					UserDataAccessor.userExists(connection, username, password, result -> switch (result) {
 						case Left(err):
 							trace(err);
 							res.send(500, err.message);
@@ -75,14 +82,14 @@ class Main {
 					// username and password and email must be provided
 					res.send(400, "Bad Request");
 				case {username: username, password: password, email: email}:
-					userExists(connection, username, password, result -> switch (result) {
+					UserDataAccessor.userExists(connection, username, password, result -> switch (result) {
 						case Left(err):
 							trace(err);
 							res.send(500, err.message);
 						case Right(true):
 							res.send(200, "OK");
 						case Right(false):
-							createUser(connection, {
+							UserDataAccessor.createUser(connection, {
 								username: username,
 								password: password,
 								email: email
@@ -121,24 +128,5 @@ class Main {
 		});
 	}
 
-	static function userExists(connection:MySQLConnection, uname:String, pwd:String, callback:Either<Error, Bool>->Void):Void {
-		connection.query("SELECT login FROM user WHERE login = ? AND password = ?", [uname, pwd], (error:Error, results, fields) -> {
-			if (error != null) {
-				callback(Left(error));
-				return;
-			}
-			callback(Right(results.length > 0));
-		});
-	}
-
-	static function createUser(connection:MySQLConnection, user:User, callback:Either<Error, Bool>->Void) {
-		connection.query("INSERT INTO user(login, password, email)  VALUES(?,?,?)", [user.username, user.password, user.email],
-			(error:Error, results, fields) -> {
-				if (error != null) {
-					callback(Left(error));
-					return;
-				}
-				callback(Right(true));
-			});
-	}
+	
 }
