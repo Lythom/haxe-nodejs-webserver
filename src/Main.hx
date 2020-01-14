@@ -19,6 +19,10 @@ extern class RequestSubscribe extends RequestWithSession {
 	public var body:{username:String, password:String, email:String};
 }
 
+extern class RequestSave extends Request {
+	public var body:Dynamic;
+}
+
 class Main {
 	// Declare a static property with a get but no setter. See https://haxe.org/manual/class-field-property.html
 	// Act as a readonly singleton.
@@ -89,9 +93,6 @@ class Main {
 		server.post('/login', function(expressReq:Request, res:Response) {
 			var req:RequestLogin = cast(expressReq);
 			switch (req.body) {
-				case {username: "theuser", password: "thepassword"}:
-					req.session.authenticated = true;
-					res.send(200, "OK");
 				case {username: uname, password: pwd}
 					if (uname == null || pwd == null):
 					// username and password must be provided
@@ -99,13 +100,13 @@ class Main {
 					res.send(400, "Bad Request");
 				case {username: username, password: password}:
 					UserDataAccessor.userExists(connection, username, password, result -> switch (result) {
-						case Left(err):
+						case UserExistsResult.Error(err):
 							trace(err);
 							res.send(500, err.message);
-						case Right(true):
+						case UserExistsResult.Yes:
 							req.session.authenticated = true;
 							res.send(200, "OK");
-						case Right(false):
+						case UserExistsResult.Missing | UserExistsResult.WrongPassword:
 							req.session.authenticated = false;
 							res.send(401, "Unauthorized");
 					});
@@ -146,12 +147,14 @@ class Main {
 					res.send(400, "Bad Request");
 				case {username: username, password: password, email: email}:
 					UserDataAccessor.userExists(connection, username, password, result -> switch (result) {
-						case Left(err):
+						case UserExistsResult.Error(err):
 							trace(err);
 							res.send(500, err.message);
-						case Right(true):
-							res.send(200, "OK");
-						case Right(false):
+
+						case UserExistsResult.Yes, UserExistsResult.WrongPassword:
+							res.send(500, "User already exists, please use another login");
+
+						case UserExistsResult.Missing:
 							UserDataAccessor.createUser(connection, {
 								username: username,
 								password: password,
@@ -176,6 +179,11 @@ class Main {
 		server.get('/status', function(expressReq:Request, res:Response) {
 			var req:RequestWithSession = cast(expressReq);
 			res.send(200, req.session.authenticated ? "Authentifié" : "Visiteur");
+		});
+
+		server.post('/save', function(expressReq:Request, res:Response) {
+			var req:RequestSave = cast(expressReq);
+			res.send(200, req.body);
 		});
 
 		var port = 1337;

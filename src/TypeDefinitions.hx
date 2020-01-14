@@ -34,5 +34,5 @@ typedef MySQLConnection = {
 	escapeId:String->String,
 	pause:(Dynamic->Void)->Void,
 	end:Void->Void,
-	query:String->?Array<Dynamic>->?(Dynamic->Dynamic->Array<Dynamic>->Void)->Dynamic
+	query:String->?Array<Dynamic>->?(Dynamic->Array<Dynamic>->Array<Dynamic>->Void)->Dynamic
 }

@@ -1,6 +1,7 @@
 -cp src
 -lib js-kit
 -lib hxnodejs
+-lib crypto
 -main Main 
 -js dist/main.js
 -debug
