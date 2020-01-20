@@ -1,5 +1,4 @@
 import haxe.macro.Expr.Case;
-import db.UserDataAccessor;
 import js.Node;
 import js.npm.express.Request;
 import js.npm.express.Response;
@@ -27,7 +26,7 @@ extern class RequestSave extends RequestWithSession {
 class Main {
 	// Declare a static property with a get but no setter. See https://haxe.org/manual/class-field-property.html
 	// Act as a readonly singleton.
-	static var db(default, never):MySQL = Node.require("mysql");
+	static var mysqlDB(default, never):MySQL = Node.require("mysql");
 
 	static function main() {
 		// load environment variables from .env file
@@ -35,7 +34,7 @@ class Main {
 		Node.require('dotenv').config();
 
 		// create a connection to the database and start the connection immediatly
-		var connection = db.createConnection({
+		var connection = mysqlDB.createConnection({
 			host: Sys.getEnv("DB_HOST"),
 			user: Sys.getEnv("DB_USER"),
 			password: Sys.getEnv("DB_PASSWORD"),
@@ -100,12 +99,12 @@ class Main {
 					req.session.token = null;
 					res.send(400, "Bad Request");
 				case {username: username, password: password}:
-					UserDataAccessor.userExists(connection, username, password, result -> switch (result) {
+					db.User.userExists(connection, username, password, result -> switch (result) {
 						case UserExistsResult.Error(err):
 							trace(err);
 							res.send(500, err.message);
 						case UserExistsResult.Yes:
-							UserDataAccessor.createToken(connection, username, 59, createTokenResult -> switch createTokenResult {
+							db.Token.createToken(connection, username, 59, createTokenResult -> switch createTokenResult {
 								case OK(token):
 									req.session.token = token;
 									res.send(200, "OK");
@@ -153,7 +152,7 @@ class Main {
 					// username and password and email must be provided
 					res.send(400, "Bad Request");
 				case {username: username, password: password, email: email}:
-					UserDataAccessor.userExists(connection, username, password, result -> switch (result) {
+					db.User.userExists(connection, username, password, result -> switch (result) {
 						case UserExistsResult.Error(err):
 							trace(err);
 							res.send(500, err.message);
@@ -162,14 +161,14 @@ class Main {
 							res.send(500, "User already exists, please use another login");
 
 						case UserExistsResult.Missing:
-							UserDataAccessor.createUser(connection, {
+							db.User.createUser(connection, {
 								username: username,
 								password: password,
 								email: email
 							}, response -> switch (response) {
-								case Left(err):
+								case Error(err):
 									res.send(500, "An error occured\n" + err.message);
-								case Right(_):
+								case OK(_):
 									res.send(200, "OK");
 							});
 					});
@@ -189,7 +188,7 @@ class Main {
 				res.send(200, "Visiteur");
 				return;
 			}
-			UserDataAccessor.fromToken(connection, req.session.token, result -> switch (result) {
+			db.Token.fromToken(connection, req.session.token, result -> switch (result) {
 				case User(login):
 					res.send(200, "Bonjour " + login);
 				case Missing:
@@ -205,9 +204,9 @@ class Main {
 				res.send(401, "Token invalide. Vous devez vous re-connecter.");
 				return;
 			}
-			UserDataAccessor.fromToken(connection, req.session.token, result -> switch (result) {
+			db.Token.fromToken(connection, req.session.token, result -> switch (result) {
 				case User(login):
-					UserDataAccessor.save(connection, login, req.body, result -> switch (result) {
+					db.User.save(connection, login, req.body, result -> switch (result) {
 						case Error(err):
 							res.send(500, "An error occured\n" + err.message);
 						case OK(_):
@@ -227,9 +226,9 @@ class Main {
 				res.send(401, "Token invalide. Vous devez vous re-connecter.");
 				return;
 			}
-			UserDataAccessor.fromToken(connection, req.session.token, result -> switch (result) {
+			db.Token.fromToken(connection, req.session.token, result -> switch (result) {
 				case User(login):
-					UserDataAccessor.load(connection, login, result -> switch (result) {
+					db.User.load(connection, login, result -> switch (result) {
 						case Error(err):
 							res.send(500, "An error occured\n" + err.message);
 						case OK(data):

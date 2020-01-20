@@ -1,14 +1,3 @@
-import js.npm.express.Request;
-
-/**
- * Application data model
- */
-typedef User = {
-	var username:String;
-	var password:String;
-	var email:String;
-}
-
 /**
  * Mysql externs for npm package "mysql"
  * See documentation at https://github.com/mysqljs/mysql
@@ -35,4 +24,22 @@ typedef MySQLConnection = {
 	pause:(Dynamic->Void)->Void,
 	end:Void->Void,
 	query:String->?Array<Dynamic>->?(Dynamic->Array<Dynamic>->Array<Dynamic>->Void)->Dynamic
+}
+
+enum UserExistsResult {
+	Yes;
+	Missing;
+	WrongPassword;
+	Error(err:js.lib.Error);
+}
+
+enum FromTokenResult {
+	User(login:String);
+	Missing;
+	Error(err:js.lib.Error);
+}
+
+enum QueryResult<T> {
+	OK(data:T);
+	Error(err:js.lib.Error);
 }
