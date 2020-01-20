@@ -1,3 +1,4 @@
+import haxe.macro.Expr.Case;
 import db.UserDataAccessor;
 import js.Node;
 import js.npm.express.Request;
@@ -8,7 +9,7 @@ import js.npm.express.Session;
 import TypeDefinitions;
 
 extern class RequestWithSession extends Request {
-	public var session:{authenticated:Bool};
+	public var session:{token:String};
 }
 
 extern class RequestLogin extends RequestWithSession {
@@ -96,7 +97,7 @@ class Main {
 				case {username: uname, password: pwd}
 					if (uname == null || pwd == null):
 					// username and password must be provided
-					req.session.authenticated = false;
+					req.session.token = null;
 					res.send(400, "Bad Request");
 				case {username: username, password: password}:
 					UserDataAccessor.userExists(connection, username, password, result -> switch (result) {
@@ -104,10 +105,16 @@ class Main {
 							trace(err);
 							res.send(500, err.message);
 						case UserExistsResult.Yes:
-							req.session.authenticated = true;
-							res.send(200, "OK");
+							UserDataAccessor.createToken(connection, username, 0, createTokenResult -> switch createTokenResult {
+								case Right(token):
+									res.send(200, "OK");
+									req.session.token = token;
+								case Left(err):
+									trace(err);
+									res.send(500, err.message);
+							});
 						case UserExistsResult.Missing | UserExistsResult.WrongPassword:
-							req.session.authenticated = false;
+							req.session.token = null;
 							res.send(401, "Unauthorized");
 					});
 			}
@@ -171,14 +178,25 @@ class Main {
 
 		server.post('/logout', function(expressReq:Request, res:Response) {
 			var req:RequestWithSession = cast(expressReq);
-			req.session.authenticated = false;
+			req.session.token = null;
 			res.send(200, "OK");
 			return;
 		});
 
 		server.get('/status', function(expressReq:Request, res:Response) {
 			var req:RequestWithSession = cast(expressReq);
-			res.send(200, req.session.authenticated ? "Authentifié" : "Visiteur");
+			if (req.session.token == null) {
+				res.send(200, "Visiteur");
+				return;
+			}
+			UserDataAccessor.fromToken(connection, req.session.token, result -> switch (result) {
+				case User(login):
+					res.send(200, "Bonjour " + login);
+				case Missing:
+					res.send(401, "Token invalide. Vous devez vous re-connecter.");
+				case Error(err):
+					res.send(500, err);
+			});
 		});
 
 		server.post('/save', function(expressReq:Request, res:Response) {

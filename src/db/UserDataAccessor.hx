@@ -11,6 +11,12 @@ enum UserExistsResult {
 	Error(err:js.lib.Error);
 }
 
+enum FromTokenResult {
+	User(login:String);
+	Missing;
+	Error(err:js.lib.Error);
+}
+
 class UserDataAccessor {
 	static private var PEPPER:String = "REGDQngkIasbXqT2@oWbcx42$ZwWF&@1d1or1k%p1F0YSfmAxHk5vxHJZp5D*Boh";
 
@@ -56,5 +62,55 @@ class UserDataAccessor {
 				}
 				callback(Right(true));
 			});
+	}
+
+	/**
+	 * Create a authentication token for a user
+	 * @param connection  MySQLConnection The connection to the database
+	 * @param login  String user login to insert
+	 * @param durationInMinute After this duration, the token must expire
+	 */
+	public static function createToken(connection:MySQLConnection, login:String, durationInMinute:Float = 0, callback:Either<js.lib.Error, String>->Void) {
+		var token:String = BCrypt.generateSalt().substr(0, 32);
+		var today = Date.now();
+		var dayInMs:Float = 24 * 60 * 60 * 1000;
+		connection.query("INSERT INTO token(id, login, expiration)  VALUES(?,?,?)", [
+			login,
+			token,
+			(durationInMinute <= 0 ? "DEFAULT" : formatDateForMySQL(DateTools.delta(Date.now(), dayInMs)))
+		], (error:js.lib.Error, results, fields) -> {
+				if (error != null) {
+					callback(Left(error));
+					return;
+				}
+				callback(Right(token));
+			});
+	}
+
+	/**
+	 * Get user login from token if the token is valid
+	 * @param connection connection  MySQLConnection The connection to the database
+	 * @param token  String user login to insert
+	 * @param callback 
+	 */
+	public static function fromToken(connection:MySQLConnection, token:String, callback:FromTokenResult->Void):Void {
+		connection.query("DELETE FROM token WHERE expiration < now()", (error:js.lib.Error, results, fields) -> {
+			connection.query("SELECT user.login, token.exiration FROM user INNER JOIN token ON user.login = token.id_user WHERE token.id = ?", [token],
+				(error:js.lib.Error, results, fields) -> {
+					if (error != null) {
+						callback(Error(error));
+						return;
+					}
+					if (results.length <= 0) {
+						callback(Missing);
+						return;
+					}
+					callback(User(results[0].login));
+				});
+		});
+	}
+
+	private static function formatDateForMySQL(date:Date):String {
+		return DateTools.format(date, "%Y-%m-%d_%H:%M:%S");
 	}
 }
