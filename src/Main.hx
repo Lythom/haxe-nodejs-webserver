@@ -1,3 +1,4 @@
+import js.npm.ws.WebSocket;
 import haxe.macro.Expr.Case;
 import js.Node;
 import js.npm.express.Request;
@@ -5,6 +6,7 @@ import js.npm.express.Response;
 import js.npm.Express;
 import js.npm.express.BodyParser;
 import js.npm.express.Session;
+import js.npm.ws.Server as WSServer;
 import TypeDefinitions;
 
 extern class RequestWithSession extends Request {
@@ -28,6 +30,8 @@ class Main {
 	// Act as a readonly singleton.
 	static var mysqlDB(default, never):MySQL = Node.require("mysql");
 
+	static var sockets:List<WebSocket> = new List<WebSocket>();
+
 	static function main() {
 		// load environment variables from .env file
 		// .env file must be present at the location the "node" command is run (Working directory)
@@ -50,6 +54,27 @@ class Main {
 			resave: true,
 			saveUninitialized: true
 		}));
+
+		var wss = new WSServer({
+			port: 1338
+		});
+
+		wss.on('connection', function (socket:WebSocket) {
+			sockets.add(socket);
+
+			socket.on('close', function() {
+				sockets.remove(socket);
+				for (s in sockets) {
+					s.send("A friend disconnected !", null);
+				}
+			});
+
+			socket.on('message', function(msg:Dynamic) {
+				for (s in sockets) {
+					s.send(Std.string(msg), null);
+				}
+			});
+		});
 
 		/**
 		 * @api {get} /random Random
@@ -156,10 +181,8 @@ class Main {
 						case UserExistsResult.Error(err):
 							trace(err);
 							res.send(500, err.message);
-
 						case UserExistsResult.Yes, UserExistsResult.WrongPassword:
 							res.send(500, "User already exists, please use another login");
-
 						case UserExistsResult.Missing:
 							db.User.createUser(connection, {
 								username: username,
@@ -212,7 +235,6 @@ class Main {
 						case OK(_):
 							res.send(200, "OK");
 					});
-
 				case Missing:
 					res.send(401, "Token invalide. Vous devez vous re-connecter.");
 				case Error(err):
@@ -234,7 +256,6 @@ class Main {
 						case OK(data):
 							res.send(200, data);
 					});
-
 				case Missing:
 					res.send(401, "Token invalide. Vous devez vous re-connecter.");
 				case Error(err):
