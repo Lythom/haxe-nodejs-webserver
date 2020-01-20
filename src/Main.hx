@@ -20,7 +20,7 @@ extern class RequestSubscribe extends RequestWithSession {
 	public var body:{username:String, password:String, email:String};
 }
 
-extern class RequestSave extends Request {
+extern class RequestSave extends RequestWithSession {
 	public var body:Dynamic;
 }
 
@@ -201,8 +201,24 @@ class Main {
 
 		server.post('/save', function(expressReq:Request, res:Response) {
 			var req:RequestSave = cast(expressReq);
+			if (req.session.token == null) {
+				res.send(401, "Token invalide. Vous devez vous re-connecter.");
+				return;
+			}
+			UserDataAccessor.fromToken(connection, req.session.token, result -> switch (result) {
+				case User(login):
+					UserDataAccessor.save(login, req.body, result -> switch (result) {
+						case Left(err):
+							res.send(500, "An error occured\n" + err.message);
+						case Right(_):
+							res.send(200, "OK");
+					});
 
-			res.send(200, req.body);
+				case Missing:
+					res.send(401, "Token invalide. Vous devez vous re-connecter.");
+				case Error(err):
+					res.send(500, err);
+			});
 		});
 
 		var port = 1337;

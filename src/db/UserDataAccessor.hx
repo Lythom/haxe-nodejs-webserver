@@ -17,6 +17,11 @@ enum FromTokenResult {
 	Error(err:js.lib.Error);
 }
 
+enum QueryResult {
+	OK;
+	Error(err:js.lib.Error);
+}
+
 class UserDataAccessor {
 	static private var PEPPER:String = "REGDQngkIasbXqT2@oWbcx42$ZwWF&@1d1or1k%p1F0YSfmAxHk5vxHJZp5D*Boh";
 
@@ -106,6 +111,17 @@ class UserDataAccessor {
 					}
 					callback(User(results[0].login));
 				});
+		});
+	}
+
+	public static function save(connection:MySQLConnection, login:String, data:Dynamic, callback:QueryResult->Void):Void {
+		connection.query("UPDATE user SET data=? WHERE login = ?", [data, login],
+		(error:js.lib.Error, results, fields) -> {
+			if (error != null) {
+				callback(Error(error));
+				return;
+			}
+			callback(OK);
 		});
 	}
 
