@@ -1,5 +1,6 @@
 package db;
 
+import haxe.Json;
 import haxe.crypto.BCrypt;
 import haxe.ds.Either;
 import TypeDefinitions;
@@ -17,8 +18,8 @@ enum FromTokenResult {
 	Error(err:js.lib.Error);
 }
 
-enum QueryResult {
-	OK;
+enum QueryResult<T> {
+	OK(data:T);
 	Error(err:js.lib.Error);
 }
 
@@ -75,7 +76,7 @@ class UserDataAccessor {
 	 * @param login  String user login to insert
 	 * @param durationInMinute After this duration, the token must expire
 	 */
-	public static function createToken(connection:MySQLConnection, login:String, durationInMinute:Float = 0, callback:Either<js.lib.Error, String>->Void) {
+	public static function createToken(connection:MySQLConnection, login:String, durationInMinute:Float = 0, callback:QueryResult<String>->Void) {
 		var token:String = BCrypt.generateSalt().substr(0, 32);
 		var durationInMs:Float = durationInMinute * 60 * 1000;
 		connection.query("INSERT INTO token(id, user_id, expiration)  VALUES(?,?,?)", [
@@ -84,10 +85,10 @@ class UserDataAccessor {
 			(durationInMinute <= 0 ? "DEFAULT" : formatDateForMySQL(DateTools.delta(Date.now(), durationInMs)))
 		], (error:js.lib.Error, results, fields) -> {
 				if (error != null) {
-					callback(Left(error));
+					callback(Error(error));
 					return;
 				}
-				callback(Right(token));
+				callback(OK(token));
 			});
 	}
 
@@ -114,14 +115,24 @@ class UserDataAccessor {
 		});
 	}
 
-	public static function save(connection:MySQLConnection, login:String, data:Dynamic, callback:QueryResult->Void):Void {
-		connection.query("UPDATE user SET data=? WHERE login = ?", [data, login],
+	public static function save(connection:MySQLConnection, login:String, data:Dynamic, callback:QueryResult<Dynamic>->Void):Void {
+		connection.query("UPDATE user SET data=? WHERE login = ?", [Json.stringify(data), login],
 		(error:js.lib.Error, results, fields) -> {
 			if (error != null) {
 				callback(Error(error));
 				return;
 			}
-			callback(OK);
+			callback(OK(results));
+		});
+	}
+	public static function load(connection:MySQLConnection, login:String, callback:QueryResult<Dynamic>->Void):Void {
+		connection.query("SELECT data FROM user WHERE login = ?", [login],
+		(error:js.lib.Error, results, fields) -> {
+			if (error != null) {
+				callback(Error(error));
+				return;
+			}
+			callback(OK(results[0].data));
 		});
 	}
 

@@ -106,10 +106,10 @@ class Main {
 							res.send(500, err.message);
 						case UserExistsResult.Yes:
 							UserDataAccessor.createToken(connection, username, 59, createTokenResult -> switch createTokenResult {
-								case Right(token):
+								case OK(token):
 									req.session.token = token;
 									res.send(200, "OK");
-								case Left(err):
+								case Error(err):
 									trace(err);
 									res.send(500, err.message);
 							});
@@ -207,11 +207,33 @@ class Main {
 			}
 			UserDataAccessor.fromToken(connection, req.session.token, result -> switch (result) {
 				case User(login):
-					UserDataAccessor.save(login, req.body, result -> switch (result) {
-						case Left(err):
+					UserDataAccessor.save(connection, login, req.body, result -> switch (result) {
+						case Error(err):
 							res.send(500, "An error occured\n" + err.message);
-						case Right(_):
+						case OK(_):
 							res.send(200, "OK");
+					});
+
+				case Missing:
+					res.send(401, "Token invalide. Vous devez vous re-connecter.");
+				case Error(err):
+					res.send(500, err);
+			});
+		});
+
+		server.post('/load', function(expressReq:Request, res:Response) {
+			var req:RequestSave = cast(expressReq);
+			if (req.session.token == null) {
+				res.send(401, "Token invalide. Vous devez vous re-connecter.");
+				return;
+			}
+			UserDataAccessor.fromToken(connection, req.session.token, result -> switch (result) {
+				case User(login):
+					UserDataAccessor.load(connection, login, result -> switch (result) {
+						case Error(err):
+							res.send(500, "An error occured\n" + err.message);
+						case OK(data):
+							res.send(200, data);
 					});
 
 				case Missing:
