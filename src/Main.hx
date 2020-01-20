@@ -105,10 +105,10 @@ class Main {
 							trace(err);
 							res.send(500, err.message);
 						case UserExistsResult.Yes:
-							UserDataAccessor.createToken(connection, username, 0, createTokenResult -> switch createTokenResult {
+							UserDataAccessor.createToken(connection, username, 59, createTokenResult -> switch createTokenResult {
 								case Right(token):
-									res.send(200, "OK");
 									req.session.token = token;
+									res.send(200, "OK");
 								case Left(err):
 									trace(err);
 									res.send(500, err.message);
@@ -201,6 +201,7 @@ class Main {
 
 		server.post('/save', function(expressReq:Request, res:Response) {
 			var req:RequestSave = cast(expressReq);
+
 			res.send(200, req.body);
 		});
 

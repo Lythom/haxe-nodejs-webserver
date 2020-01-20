@@ -72,12 +72,11 @@ class UserDataAccessor {
 	 */
 	public static function createToken(connection:MySQLConnection, login:String, durationInMinute:Float = 0, callback:Either<js.lib.Error, String>->Void) {
 		var token:String = BCrypt.generateSalt().substr(0, 32);
-		var today = Date.now();
-		var dayInMs:Float = 24 * 60 * 60 * 1000;
-		connection.query("INSERT INTO token(id, login, expiration)  VALUES(?,?,?)", [
-			login,
+		var durationInMs:Float = durationInMinute * 60 * 1000;
+		connection.query("INSERT INTO token(id, user_id, expiration)  VALUES(?,?,?)", [
 			token,
-			(durationInMinute <= 0 ? "DEFAULT" : formatDateForMySQL(DateTools.delta(Date.now(), dayInMs)))
+			login,
+			(durationInMinute <= 0 ? "DEFAULT" : formatDateForMySQL(DateTools.delta(Date.now(), durationInMs)))
 		], (error:js.lib.Error, results, fields) -> {
 				if (error != null) {
 					callback(Left(error));
@@ -95,7 +94,7 @@ class UserDataAccessor {
 	 */
 	public static function fromToken(connection:MySQLConnection, token:String, callback:FromTokenResult->Void):Void {
 		connection.query("DELETE FROM token WHERE expiration < now()", (error:js.lib.Error, results, fields) -> {
-			connection.query("SELECT user.login, token.exiration FROM user INNER JOIN token ON user.login = token.id_user WHERE token.id = ?", [token],
+			connection.query("SELECT u.login, t.expiration FROM user u INNER JOIN token t ON u.login = t.user_id WHERE t.id = ?", [token],
 				(error:js.lib.Error, results, fields) -> {
 					if (error != null) {
 						callback(Error(error));
