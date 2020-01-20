@@ -1,5 +1,4 @@
 import js.npm.ws.WebSocket;
-import haxe.macro.Expr.Case;
 import js.Node;
 import js.npm.express.Request;
 import js.npm.express.Response;
@@ -30,7 +29,9 @@ class Main {
 	// Act as a readonly singleton.
 	static var mysqlDB(default, never):MySQL = Node.require("mysql");
 
+	static var lastSocketId:Int = 0;
 	static var sockets:List<WebSocket> = new List<WebSocket>();
+	static var tickets:Map<String, String> = new Map<String, String>();
 
 	static function main() {
 		// load environment variables from .env file
@@ -59,19 +60,38 @@ class Main {
 			port: 1338
 		});
 
-		wss.on('connection', function (socket:WebSocket) {
-			sockets.add(socket);
+		wss.on('connection', function(socket:WebSocket) {
+			// use a closure to keep socket related data
+			// if username have a value the user is logged in.
+			var username:String = null;
 
 			socket.on('close', function() {
 				sockets.remove(socket);
-				for (s in sockets) {
-					s.send("A friend disconnected !", null);
+				if (username == null)
+					return;
+				for (remoteSocket in sockets) {
+					remoteSocket.send(username + " disconnected !", null);
 				}
 			});
 
 			socket.on('message', function(msg:Dynamic) {
-				for (s in sockets) {
-					s.send(Std.string(msg), null);
+				if (username == null) {
+					if (tickets.exists(msg)) {
+						// allow socket to talk by setting its username
+						username = tickets[msg];
+						// consume ticket
+						tickets.remove(msg);
+						// add socket to destination list
+						sockets.add(socket);
+						// welcome
+						socket.send("Bienvenue sur le chat " + username, null);
+					} else {
+						socket.close(0, "Please provide a ticket first to log in.");
+					}
+					return;
+				}
+				for (remoteSocket in sockets) {
+					remoteSocket.send(username + " : " + Std.string(msg), null);
 				}
 			});
 		});
@@ -256,6 +276,24 @@ class Main {
 						case OK(data):
 							res.send(200, data);
 					});
+				case Missing:
+					res.send(401, "Token invalide. Vous devez vous re-connecter.");
+				case Error(err):
+					res.send(500, err);
+			});
+		});
+
+		server.get('/wsTicket', function(expressReq:Request, res:Response) {
+			var req:RequestWithSession = cast(expressReq);
+			if (req.session.token == null) {
+				res.send(401, "Token invalide. Vous devez vous re-connecter.");
+				return;
+			}
+			db.Token.fromToken(connection, req.session.token, result -> switch (result) {
+				case User(login):
+					var ticket = haxe.crypto.BCrypt.generateSalt().substr(0, 32);
+					tickets[ticket] = login;
+					res.send(200, ticket);
 				case Missing:
 					res.send(401, "Token invalide. Vous devez vous re-connecter.");
 				case Error(err):
