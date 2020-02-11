@@ -1,3 +1,4 @@
+import js.npm.express.Static;
 import js.npm.ws.WebSocket;
 import js.Node;
 import js.npm.express.Request;
@@ -50,6 +51,7 @@ class Main {
 		// Setup express server with middlewares
 		var server:Express = new js.npm.Express();
 		server.use(BodyParser.json({limit: '5mb', type: 'application/json'}));
+		server.use(new Static("wsclient"));
 		server.use(new Session({
 			secret: 'shhhh, very secret',
 			resave: true,

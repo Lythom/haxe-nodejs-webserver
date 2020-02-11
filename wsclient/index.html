@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>express-ws chat sample</title>
 </head>
+
 <body>
   <h1>express-ws chat sample</h1>
-  <form class="form">
-    <input class="input" autofocus>
-    <input class="submit" type="submit">
-  </form>
-  <ul class="messages"></ul>
+
+  <div class="error"></div>
+
+  <div id="register">
+    <h2>Inscription</h2>
+    <form class="registerform">
+      <label>login: <input name="login" class="input" type="text" value=""></label>
+      <label>pasword: <input name="password" class="input" type="text" value=""></label>
+      <input class="submit" type="submit">
+    </form>
+  </div>
+
+  <div id="login">
+    <h2>Connexion</h2>
+    <form class="loginform">
+      <label>login: <input name="login" class="input" type="text" value="newUser"></label>
+      <label>pasword: <input name="password" class="input" type="text" value="newPassword"></label>
+      <input class="submit" type="submit">
+    </form>
+  </div>
+
+  <div id="chat">
+    <h2>Chat</h2>
+    <form class="chatform">
+      <input name="message" class="input">
+      <input class="submit" type="submit">
+    </form>
+    <ul class="messages"></ul>
+  </div>
   <script src="client.js"></script>
 </body>
+
 </html>
