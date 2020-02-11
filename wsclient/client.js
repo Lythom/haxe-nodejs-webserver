@@ -1,5 +1,6 @@
 (function () {
-  var ws = new WebSocket("ws://localhost:1338");
+  var SERVER = '143ea290.ngrok.io';
+  var ws = new WebSocket(`ws://${SERVER}/`);
 
   var chatform = document.querySelector('.chatform');
   var loginform = document.querySelector('.loginform');
@@ -7,7 +8,7 @@
   document.querySelector('#chat').style.display = 'none';
 
   async function sendLogging(login, password) {
-    const loginResponse = await fetch('http://localhost:1337/login', {
+    const loginResponse = await fetch(`http://${SERVER}/login`, {
       method: 'POST',
       body: JSON.stringify({
         "username": login,
@@ -15,7 +16,8 @@
       }),
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      credentials: 'include'
     });
     const loginResponseValue = await loginResponse.text();
     if (loginResponseValue.ok) {
@@ -23,8 +25,9 @@
       return;
     }
 
-    const ticketResponse = await fetch('http://localhost:1337/wsTicket', {
-      method: 'GET'
+    const ticketResponse = await fetch(`http://${SERVER}/wsTicket`, {
+      method: 'GET',
+      credentials: 'include'
     });
 
     const ticketResponseValue = await ticketResponse.text();
@@ -40,7 +43,7 @@
   }
 
   async function sendRegister(login, password, email) {
-    const response = await fetch('http://localhost:1337/subscribe', {
+    const response = await fetch(`http://${SERVER}/subscribe`, {
       method: 'POST',
       body: JSON.stringify({
         "username": login,
@@ -49,12 +52,12 @@
       }),
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      credentials: 'include'
     });
     const registerResponseValue = await response.text();
-    if (registerResponseValue.ok) {
+    if (!registerResponseValue.ok) {
       document.querySelector('.error').textContent = registerResponseValue;
-      return;
     } else {
       document.querySelector('.error').textContent = 'Le compte a été créé !';
     }
@@ -68,7 +71,7 @@
     var password = passwordInput.value;
     sendLogging(login, password);
   }
-  
+
   registerform.onsubmit = function (e) {
     e.preventDefault();
     var loginInput = registerform.querySelector('input[name=login]');

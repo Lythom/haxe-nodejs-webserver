@@ -38,6 +38,7 @@ class Main {
 		// load environment variables from .env file
 		// .env file must be present at the location the "node" command is run (Working directory)
 		Node.require('dotenv').config();
+		var cors = Node.require('cors');
 
 		// create a connection to the database and start the connection immediatly
 		var connection = mysqlDB.createConnection({
@@ -51,6 +52,12 @@ class Main {
 		// Setup express server with middlewares
 		var server:Express = new js.npm.Express();
 		server.use(BodyParser.json({limit: '5mb', type: 'application/json'}));
+		server.use(cors({
+			credentials: true,
+			origin: function(req:Request, callback:String->Bool->Void) {
+				callback(null, true);
+			}
+		}));
 		server.use(new Static("wsclient"));
 		server.use(new Session({
 			secret: 'shhhh, very secret',
@@ -58,11 +65,9 @@ class Main {
 			saveUninitialized: true
 		}));
 
-		var wss = new WSServer({
-			port: 1338
-		});
-
-		wss.on('connection', function(socket:WebSocket) {
+		var expressWs = Node.require('express-ws')(server);
+		
+		expressWs.app.ws('/', function(socket:WebSocket, req) {
 			// use a closure to keep socket related data
 			// if username have a value the user is logged in.
 			var username:String = null;
@@ -307,8 +312,8 @@ class Main {
 		if (Sys.getEnv("PORT") != null) {
 			port = Std.parseInt(Sys.getEnv("PORT"));
 		}
-		server.listen(port, '127.0.0.1');
-		trace('Server running at http://127.0.0.1:${port}/');
+		server.listen(port);
+		trace('Server running at http://localhost:${port}/');
 		Node.process.on('SIGTERM', function onSigterm() {
 			trace('Got SIGTERM. Graceful shutdown start');
 			connection.end();
