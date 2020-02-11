@@ -196,8 +196,7 @@ class Main {
 			switch (req.body) {
 				case {username: username, password: password, email: email}
 					if (username == null || password == null || email == null):
-					// username and password and email must be provided
-					res.send(400, "Bad Request");
+					res.send(400, "Username and password and email must be provided");
 				case {username: username, password: password, email: email}:
 					db.User.userExists(connection, username, password, result -> switch (result) {
 						case UserExistsResult.Error(err):
