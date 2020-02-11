@@ -8,10 +8,18 @@
 4.
 ```sh
 npm install
+haxelib install crypto
+haxelib install hxnodejs
+haxelib install hxnodejs-ws
+haxelib git js-kit https://github.com/clemos/haxe-js-kit
+```
+
+## Compiler et lancer
+
+```
 haxe build.hxml
 npx nodemon dist/main.js
 ```
-
 
 ## Description
 
