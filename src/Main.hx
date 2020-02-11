@@ -66,7 +66,7 @@ class Main {
 		}));
 
 		var expressWs = Node.require('express-ws')(server);
-		
+
 		expressWs.app.ws('/', function(socket:WebSocket, req) {
 			// use a closure to keep socket related data
 			// if username have a value the user is logged in.
@@ -93,7 +93,8 @@ class Main {
 						// welcome
 						socket.send("Bienvenue sur le chat " + username, null);
 					} else {
-						socket.close(0, "Please provide a ticket first to log in.");
+						socket.send("Please provide a ticket first to log in.", null);
+						socket.close();
 					}
 					return;
 				}
