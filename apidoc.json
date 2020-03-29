@@ -1,0 +1,9 @@
+{
+    "name": "Backend",
+    "version": "1.0.0",
+    "description": "Spécifications de l'API du cours de backend",
+    "apidoc": {
+        "title": "Spécifications de l'API du cours de backend",
+        "url": "https://bosa3032.odns.fr:1337/"
+    }
+}

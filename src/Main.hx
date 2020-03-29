@@ -6,7 +6,6 @@ import js.npm.express.Response;
 import js.npm.Express;
 import js.npm.express.BodyParser;
 import js.npm.express.Session;
-import js.npm.ws.Server as WSServer;
 import TypeDefinitions;
 
 extern class RequestWithSession extends Request {
@@ -59,6 +58,7 @@ class Main {
 			}
 		}));
 		server.use(new Static("wsclient"));
+		server.use("/doc", new Static("generated-doc"));
 		server.use(new Session({
 			secret: 'shhhh, very secret',
 			resave: true,
@@ -72,6 +72,13 @@ class Main {
 			// if username have a value the user is logged in.
 			var username:String = null;
 
+			/**
+			 * @api {websocket} /close Close
+			 * @apiDescription Gently stops connection with the server.
+			 * <br/> URL: ws://bosa3032.odns.fr:1337/close
+			 * @apiName Close
+			 * @apiGroup Websocket	
+			 */
 			socket.on('close', function() {
 				sockets.remove(socket);
 				if (username == null)
@@ -81,6 +88,16 @@ class Main {
 				}
 			});
 
+			/**
+			 * @api {websocket} /message Message
+			 * @apiDescription Send a message on the websocket channel
+			 * <br/> The first message must be the authentication ticket provided by the /wsTicket route (POST). Any other message will have the server close the connexion.
+			 * <br/> URL: ws://bosa3032.odns.fr:1337/message
+			 * @apiName Message
+			 * @apiGroup Websocket	
+			 * 
+			 * @apiParam {String} message
+			 */
 			socket.on('message', function(msg:Dynamic) {
 				if (username == null) {
 					if (tickets.exists(msg)) {
@@ -121,7 +138,7 @@ class Main {
 
 		/**
 		 * @api {post} /login Login
-		 * @apiDescription Authenticate a registered user
+		 * @apiDescription Authenticate a registered user. Set a session token as server cookie.
 		 * @apiName Login
 		 * @apiGroup Users
 		 *
@@ -137,7 +154,7 @@ class Main {
 		 * @apiError (Error 500) TechnicalError Could not create user because of technical error %s.
 		 *
 		 * @apiErrorExample Error-Response:
-		 *     HTTP/1.1 500 Unauthorized
+		 *     HTTP/1.1 401 Unauthorized
 		 *     {
 		 *        "errorKey": "Unauthorized",
 		 *        "errorMessage": "Authentication information doesn't match.",
@@ -225,6 +242,16 @@ class Main {
 			}
 		});
 
+		/**
+		 * @api {post} /logout [Authenticated] Logout
+		 * @apiDescription Logout the user, remove the session token from the server cookies.
+		 * @apiName Logout
+		 * @apiGroup Users
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     OK
+		 */
 		server.post('/logout', function(expressReq:Request, res:Response) {
 			var req:RequestWithSession = cast(expressReq);
 			req.session.token = null;
@@ -232,6 +259,19 @@ class Main {
 			return;
 		});
 
+		/**
+		 * @api {post} /status [Authenticated] Status
+		 * @apiDescription Tell if the user is currently logged in ("Bonjour {username}") or logged out ("Visiteur").
+		 * @apiName Status 
+		 * @apiGroup Users
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     Visiteur
+		 * 
+		 * @apiError (Error 401) Invalid Token.
+		 * @apiError (Error 500) TechnicalError %s.
+		 */
 		server.get('/status', function(expressReq:Request, res:Response) {
 			var req:RequestWithSession = cast(expressReq);
 			if (req.session.token == null) {
@@ -248,6 +288,20 @@ class Main {
 			});
 		});
 
+
+		/**
+		 * @api {post} /save [Authenticated] Save
+		 * @apiDescription Overwrite authenticated user data.
+		 * @apiName save 
+		 * @apiGroup Users
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     OK
+		 * 
+		 * @apiError (Error 401) Invalid Token.
+		 * @apiError (Error 500) An error occured %s.
+		 */
 		server.post('/save', function(expressReq:Request, res:Response) {
 			var req:RequestSave = cast(expressReq);
 			if (req.session.token == null) {
@@ -269,6 +323,19 @@ class Main {
 			});
 		});
 
+		/**
+		 * @api {post} /load [Authenticated] load
+		 * @apiDescription Get user data
+		 * @apiName load 
+		 * @apiGroup Users
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     OK
+		 * 
+		 * @apiError (Error 401) Invalid Token.
+		 * @apiError (Error 500) An error occured %s.
+		 */
 		server.post('/load', function(expressReq:Request, res:Response) {
 			var req:RequestSave = cast(expressReq);
 			if (req.session.token == null) {
@@ -290,6 +357,19 @@ class Main {
 			});
 		});
 
+		/**
+		 * @api {post} /wsTicket [Authenticated] wsTicket
+		 * @apiDescription Get a ticket for websocket access. The ticket must be sent using the websocket /message route and be the first message.
+		 * @apiName wsTicket 
+		 * @apiGroup Websocket
+		 *
+		 * @apiSuccessExample Success-Response:
+		 *     HTTP/1.1 200 OK
+		 *     OK
+		 * 
+		 * @apiError (Error 401) Invalid Token.
+		 * @apiError (Error 500) An error occured %s.
+		 */
 		server.get('/wsTicket', function(expressReq:Request, res:Response) {
 			var req:RequestWithSession = cast(expressReq);
 			if (req.session.token == null) {
