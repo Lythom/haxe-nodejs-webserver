@@ -41,10 +41,10 @@ class Main {
 
 		// create a connection to the database and start the connection immediatly
 		var connection = mysqlDB.createConnection({
-			host: Sys.getEnv("DB_HOST"),
-			user: Sys.getEnv("DB_USER"),
-			password: Sys.getEnv("DB_PASSWORD"),
-			database: Sys.getEnv("DB_NAME")
+			host: Sys.getEnv("MYSQL_ADDON_HOST"),
+			user: Sys.getEnv("MYSQL_ADDON_USER"),
+			password: Sys.getEnv("MYSQL_ADDON_PASSWORD"),
+			database: Sys.getEnv("MYSQL_ADDON_DB")
 		});
 		connection.connect();
 
