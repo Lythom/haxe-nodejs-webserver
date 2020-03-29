@@ -1,8 +1,12 @@
 (function () {
   // var SERVER = 'bosa3032.odns.fr';
-  var SERVER = 'localhost:1337';
+  // var SERVER = 'localhost:1337';
+  // var SERVER = 'app-96e160ad-34c6-4f60-a605-30805dbe4214.cleverapps.io/';
+  var SERVER = window.location.host;
+  var PROTOCOL = location.protocol;
+  var WS_PROTOCOL = PROTOCOL === 'https:' ? 'wss:' : 'ws:';
 
-  var ws = new WebSocket(`ws://${SERVER}/`);
+  var ws = new WebSocket(`${WS_PROTOCOL}//${SERVER}/`);
 
   var chatform = document.querySelector('.chatform');
   var loginform = document.querySelector('.loginform');
@@ -10,7 +14,7 @@
   document.querySelector('#chat').style.display = 'none';
 
   async function sendLogging(login, password) {
-    const loginResponse = await fetch(`http://${SERVER}/login`, {
+    const loginResponse = await fetch(`${PROTOCOL}//${SERVER}/login`, {
       method: 'POST',
       body: JSON.stringify({
         "username": login,
@@ -27,7 +31,7 @@
       return;
     }
 
-    const ticketResponse = await fetch(`http://${SERVER}/wsTicket`, {
+    const ticketResponse = await fetch(`${PROTOCOL}//${SERVER}/wsTicket`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -48,7 +52,7 @@
   }
 
   async function sendRegister(login, password, email) {
-    const response = await fetch(`http://${SERVER}/subscribe`, {
+    const response = await fetch(`${PROTOCOL}//${SERVER}/subscribe`, {
       method: 'POST',
       body: JSON.stringify({
         "username": login,

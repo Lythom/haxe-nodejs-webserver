@@ -168,7 +168,7 @@ Main.__name__ = true;
 Main.main = function() {
 	require("dotenv").config();
 	var cors = require("cors");
-	var connection = Main.mysqlDB.createConnection({ host : process.env["MYSQL_ADDON_HOST"], user : process.env["MYSQL_ADDON_USER"], password : process.env["MYSQL_ADDON_PASSWORD"], database : process.env["MYSQL_ADDON_DB"]});
+	var connection = Main.mysqlDB.createConnection({ host : process.env["MYSQL_ADDON_HOST"] != null ? process.env["MYSQL_ADDON_HOST"] : process.env["DB_HOST"], user : process.env["MYSQL_ADDON_USER"] != null ? process.env["MYSQL_ADDON_USER"] : process.env["DB_USER"], password : process.env["MYSQL_ADDON_PASSWORD"] != null ? process.env["MYSQL_ADDON_PASSWORD"] : process.env["DB_PASSWORD"], database : process.env["MYSQL_ADDON_DB"] != null ? process.env["MYSQL_ADDON_DB"] : process.env["DB_NAME"]});
 	connection.connect();
 	var server = new js_npm_Express();
 	server.use(js_npm_express_BodyParser.json({ limit : "5mb", type : "application/json"}));
@@ -453,9 +453,9 @@ Main.main = function() {
 		port = Std.parseInt(process.env["PORT"]);
 	}
 	server.listen(port);
-	console.log("src/Main.hx:401:","Server running at http://localhost:" + port + "/");
+	console.log("src/Main.hx:400:","Server running at https://localhost:" + port + "/");
 	var onSigterm = function() {
-		console.log("src/Main.hx:403:","Got SIGTERM. Graceful shutdown start");
+		console.log("src/Main.hx:402:","Got SIGTERM. Graceful shutdown start");
 		connection.end();
 	};
 	process.on("SIGTERM",onSigterm);

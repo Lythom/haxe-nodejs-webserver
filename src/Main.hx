@@ -41,10 +41,10 @@ class Main {
 
 		// create a connection to the database and start the connection immediatly
 		var connection = mysqlDB.createConnection({
-			host: Sys.getEnv("MYSQL_ADDON_HOST"),
-			user: Sys.getEnv("MYSQL_ADDON_USER"),
-			password: Sys.getEnv("MYSQL_ADDON_PASSWORD"),
-			database: Sys.getEnv("MYSQL_ADDON_DB")
+			host: Sys.getEnv("MYSQL_ADDON_HOST") != null ? Sys.getEnv("MYSQL_ADDON_HOST") : Sys.getEnv("DB_HOST"),
+			user: Sys.getEnv("MYSQL_ADDON_USER") != null ? Sys.getEnv("MYSQL_ADDON_USER") : Sys.getEnv("DB_USER"),
+			password: Sys.getEnv("MYSQL_ADDON_PASSWORD") != null ? Sys.getEnv("MYSQL_ADDON_PASSWORD") : Sys.getEnv("DB_PASSWORD"),
+			database: Sys.getEnv("MYSQL_ADDON_DB") != null ? Sys.getEnv("MYSQL_ADDON_DB") : Sys.getEnv("DB_NAME")
 		});
 		connection.connect();
 
@@ -78,7 +78,7 @@ class Main {
 			 * @apiDescription Gently stops connection with the server.
 			 * <br/> URL: ws://bosa3032.odns.fr:1337/close
 			 * @apiName Close
-			 * @apiGroup Websocket	
+			 * @apiGroup Websocket
 			 */
 			socket.on('close', function() {
 				sockets.remove(socket);
@@ -95,8 +95,8 @@ class Main {
 			 * <br/> The first message must be the authentication ticket provided by the /wsTicket route (POST). Any other message will have the server close the connexion.
 			 * <br/> URL: ws://bosa3032.odns.fr:1337/message
 			 * @apiName Message
-			 * @apiGroup Websocket	
-			 * 
+			 * @apiGroup Websocket
+			 *
 			 * @apiParam {String} message
 			 */
 			socket.on('message', function(msg:Dynamic) {
@@ -266,13 +266,13 @@ class Main {
 		/**
 		 * @api {post} /status [Authenticated] Status
 		 * @apiDescription Tell if the user is currently logged in ("Bonjour {username}") or logged out ("Visiteur").
-		 * @apiName Status 
+		 * @apiName Status
 		 * @apiGroup Users
 		 *
 		 * @apiSuccessExample Success-Response:
 		 *     HTTP/1.1 200 OK
 		 *     Visiteur
-		 * 
+		 *
 		 * @apiError (Error 401) Invalid Token.
 		 * @apiError (Error 500) TechnicalError %s.
 		 */
@@ -292,17 +292,16 @@ class Main {
 			});
 		});
 
-
 		/**
 		 * @api {post} /save [Authenticated] Save
 		 * @apiDescription Overwrite authenticated user data.
-		 * @apiName save 
+		 * @apiName save
 		 * @apiGroup Users
 		 *
 		 * @apiSuccessExample Success-Response:
 		 *     HTTP/1.1 200 OK
 		 *     OK
-		 * 
+		 *
 		 * @apiError (Error 401) Invalid Token.
 		 * @apiError (Error 500) An error occured %s.
 		 */
@@ -330,13 +329,13 @@ class Main {
 		/**
 		 * @api {post} /load [Authenticated] load
 		 * @apiDescription Get user data
-		 * @apiName load 
+		 * @apiName load
 		 * @apiGroup Users
 		 *
 		 * @apiSuccessExample Success-Response:
 		 *     HTTP/1.1 200 OK
 		 *     OK
-		 * 
+		 *
 		 * @apiError (Error 401) Invalid Token.
 		 * @apiError (Error 500) An error occured %s.
 		 */
@@ -364,13 +363,13 @@ class Main {
 		/**
 		 * @api {post} /wsTicket [Authenticated] wsTicket
 		 * @apiDescription Get a ticket for websocket access. The ticket must be sent using the websocket /message route and be the first message.
-		 * @apiName wsTicket 
+		 * @apiName wsTicket
 		 * @apiGroup Websocket
 		 *
 		 * @apiSuccessExample Success-Response:
 		 *     HTTP/1.1 200 OK
 		 *     OK
-		 * 
+		 *
 		 * @apiError (Error 401) Invalid Token.
 		 * @apiError (Error 500) An error occured %s.
 		 */
@@ -398,7 +397,7 @@ class Main {
 			port = Std.parseInt(Sys.getEnv("PORT"));
 		}
 		server.listen(port);
-		trace('Server running at http://localhost:${port}/');
+		trace('Server running at https://localhost:${port}/');
 		Node.process.on('SIGTERM', function onSigterm() {
 			trace('Got SIGTERM. Graceful shutdown start');
 			connection.end();
