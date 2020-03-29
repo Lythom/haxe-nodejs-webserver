@@ -71,6 +71,7 @@ class Main {
 			// use a closure to keep socket related data
 			// if username have a value the user is logged in.
 			var username:String = null;
+			trace("User connected");
 
 			/**
 			 * @api {websocket} /close Close
@@ -99,6 +100,7 @@ class Main {
 			 * @apiParam {String} message
 			 */
 			socket.on('message', function(msg:Dynamic) {
+				trace("message: " + msg);
 				if (username == null) {
 					if (tickets.exists(msg)) {
 						// allow socket to talk by setting its username
@@ -109,7 +111,9 @@ class Main {
 						sockets.add(socket);
 						// welcome
 						socket.send("Bienvenue sur le chat " + username, null);
+						trace("User authenticated : " + username);
 					} else {
+						trace("Please provide a ticket first to log in.");
 						socket.send("Please provide a ticket first to log in.", null);
 						socket.close();
 					}

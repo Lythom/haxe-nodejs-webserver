@@ -1,5 +1,7 @@
 (function () {
-  var SERVER = '143ea290.ngrok.io';
+  // var SERVER = 'bosa3032.odns.fr';
+  var SERVER = 'localhost:1337';
+
   var ws = new WebSocket(`ws://${SERVER}/`);
 
   var chatform = document.querySelector('.chatform');
@@ -31,9 +33,12 @@
     });
 
     const ticketResponseValue = await ticketResponse.text();
+    console.log(ticketResponseValue);
     if (ticketResponse.ok) {
+      console.log("Sending ticketResponseValue");
       ws.send(ticketResponseValue);
       document.querySelector('#login').style.display = 'none';
+      document.querySelector('#register').style.display = 'none';
       document.querySelector('#chat').style.display = 'block';
       document.querySelector('input[name=message]').focus();
 
@@ -85,12 +90,14 @@
     var input = document.querySelector('input[name=message]');
     var text = input.value;
     ws.send(text);
+    console.log("sending: " + text)
     input.value = '';
     input.focus();
     return false;
   }
 
   ws.onmessage = function (msg) {
+    console.log("received: " + msg)
     var response = msg.data;
     var messageList = document.querySelector('.messages');
     var li = document.createElement('li');
