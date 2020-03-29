@@ -13,6 +13,7 @@ typedef MySQLConfig = {
 
 typedef MySQL = {
 	createConnection:Dynamic->MySQLConnection,
+	createPool:Dynamic->MySQLPool,
 	format:String->Array<String>->Dynamic
 }
 
@@ -24,6 +25,12 @@ typedef MySQLConnection = {
 	pause:(Dynamic->Void)->Void,
 	end:Void->Void,
 	query:String->?Array<Dynamic>->?(Dynamic->Array<Dynamic>->Array<Dynamic>->Void)->Dynamic
+}
+
+typedef MySQLPool = {
+	query:String->?Array<Dynamic>->?(Dynamic->Array<Dynamic>->Array<Dynamic>->Void)->Dynamic,
+	getConnection:js.lib.Error->MySQLConnection->Void,
+	release:Void->Void,
 }
 
 enum UserExistsResult {

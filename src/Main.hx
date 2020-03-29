@@ -40,13 +40,12 @@ class Main {
 		var cors = Node.require('cors');
 
 		// create a connection to the database and start the connection immediatly
-		var connection = mysqlDB.createConnection({
+		var connection = mysqlDB.createPool({
 			host: Sys.getEnv("MYSQL_ADDON_HOST") != null ? Sys.getEnv("MYSQL_ADDON_HOST") : Sys.getEnv("DB_HOST"),
 			user: Sys.getEnv("MYSQL_ADDON_USER") != null ? Sys.getEnv("MYSQL_ADDON_USER") : Sys.getEnv("DB_USER"),
 			password: Sys.getEnv("MYSQL_ADDON_PASSWORD") != null ? Sys.getEnv("MYSQL_ADDON_PASSWORD") : Sys.getEnv("DB_PASSWORD"),
 			database: Sys.getEnv("MYSQL_ADDON_DB") != null ? Sys.getEnv("MYSQL_ADDON_DB") : Sys.getEnv("DB_NAME")
 		});
-		connection.connect();
 
 		// Setup express server with middlewares
 		var server:Express = new js.npm.Express();
@@ -76,7 +75,7 @@ class Main {
 			/**
 			 * @api {websocket} /close Close
 			 * @apiDescription Gently stops connection with the server.
-			 * <br/> URL: ws://bosa3032.odns.fr:1337/close
+			 * <br/> URL: ws://serverurl/close
 			 * @apiName Close
 			 * @apiGroup Websocket
 			 */
@@ -93,7 +92,7 @@ class Main {
 			 * @api {websocket} /message Message
 			 * @apiDescription Send a message on the websocket channel
 			 * <br/> The first message must be the authentication ticket provided by the /wsTicket route (POST). Any other message will have the server close the connexion.
-			 * <br/> URL: ws://bosa3032.odns.fr:1337/message
+			 * <br/> URL: ws://serverurl/message
 			 * @apiName Message
 			 * @apiGroup Websocket
 			 *
