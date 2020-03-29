@@ -168,7 +168,7 @@ Main.__name__ = true;
 Main.main = function() {
 	require("dotenv").config();
 	var cors = require("cors");
-	var connection = Main.mysqlDB.createConnection({ host : process.env["DB_HOST"], user : process.env["DB_USER"], password : process.env["DB_PASSWORD"], database : process.env["DB_NAME"]});
+	var connection = Main.mysqlDB.createConnection({ host : process.env["MYSQL_ADDON_HOST"], user : process.env["MYSQL_ADDON_USER"], password : process.env["MYSQL_ADDON_PASSWORD"], database : process.env["MYSQL_ADDON_DB"]});
 	connection.connect();
 	var server = new js_npm_Express();
 	server.use(js_npm_express_BodyParser.json({ limit : "5mb", type : "application/json"}));
