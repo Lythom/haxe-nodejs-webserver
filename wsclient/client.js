@@ -5,7 +5,7 @@
   var SERVER = 'backend.cleverapps.io';
   // var SERVER = 'localhost:1337';
   // var SERVER = window.location.host || 'localhost';
-  var PROTOCOL = 'https:';
+  var PROTOCOL = location.protocol;
   var WS_PROTOCOL = PROTOCOL === 'https:' ? 'wss:' : 'ws:';
 
   var ws = new WebSocket(`${WS_PROTOCOL}//${SERVER}/`);
