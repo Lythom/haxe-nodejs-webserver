@@ -48,26 +48,24 @@ class Main {
 		});
 
 		// Setup express server with middlewares
-		var corsMiddlware = cors({
+		var server:Express = new js.npm.Express();
+		server.use(BodyParser.json({limit: '5mb', type: 'application/json'}));
+		server.use(cors({
 			credentials: true,
 			origin: function(req:Request, callback:String->Bool->Void) {
 				callback(null, true);
-			},
-			allowedHeaders: true
-		});
-		var server:Express = new js.npm.Express();
-		server.use(BodyParser.json({limit: '5mb', type: 'application/json'}));
+			}
+		}));
+
 		server.use(new Static("wsclient"));
-		server.options('*', corsMiddlware);
-		server.use(corsMiddlware);
 		server.use("/doc", new Static("generated-doc"));
+
 		server.use(new Session({
 			secret: 'shhhh, very secret',
 			resave: true,
 			saveUninitialized: true,
 			cookie: {
-				sameSite: 'none',
-				secure: Sys.getEnv("NODE_ENV") != null ? (Sys.getEnv("NODE_ENV").toUpperCase() == 'PRODUCTION') : false
+				sameSite: 'none'
 			}
 		}));
 
