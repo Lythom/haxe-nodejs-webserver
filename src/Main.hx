@@ -61,10 +61,7 @@ class Main {
 		server.use(new Session({
 			secret: 'shhhh, very secret',
 			resave: true,
-			saveUninitialized: true,
-			cookie: {
-				sameSite: 'none'
-			}
+			saveUninitialized: true
 		}));
 
 		var expressWs = Node.require('express-ws')(server);
