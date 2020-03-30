@@ -48,22 +48,26 @@ class Main {
 		});
 
 		// Setup express server with middlewares
-		var server:Express = new js.npm.Express();
-		server.use(BodyParser.json({limit: '5mb', type: 'application/json'}));
-		server.use(cors({
+		var corsMiddlware = cors({
 			credentials: true,
 			origin: function(req:Request, callback:String->Bool->Void) {
 				callback(null, true);
-			}
-		}));
+			},
+			allowedHeaders: true
+		});
+		var server:Express = new js.npm.Express();
+		server.use(BodyParser.json({limit: '5mb', type: 'application/json'}));
 		server.use(new Static("wsclient"));
+		server.options('*', corsMiddlware);
+		server.use(corsMiddlware);
 		server.use("/doc", new Static("generated-doc"));
 		server.use(new Session({
 			secret: 'shhhh, very secret',
 			resave: true,
 			saveUninitialized: true,
 			cookie: {
-				sameSite: 'none'
+				sameSite: 'none',
+				secure: Sys.getEnv("NODE_ENV") != null ? (Sys.getEnv("NODE_ENV").toUpperCase() == 'PRODUCTION') : false
 			}
 		}));
 
@@ -87,7 +91,7 @@ class Main {
 				if (username == null)
 					return;
 				for (remoteSocket in sockets) {
-					remoteSocket.send(username + " disconnected !", null);
+					if (remoteSocket.readyState == ReadyState.OPEN) remoteSocket.send(username + " disconnected !", null);
 				}
 			});
 
@@ -399,7 +403,7 @@ class Main {
 			port = Std.parseInt(Sys.getEnv("PORT"));
 		}
 		server.listen(port);
-		trace('Server running at https://localhost:${port}/');
+		trace('Server running at http://localhost:${port}/');
 		Node.process.on('SIGTERM', function onSigterm() {
 			trace('Got SIGTERM. Graceful shutdown start');
 		});
