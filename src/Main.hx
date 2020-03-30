@@ -61,7 +61,11 @@ class Main {
 		server.use(new Session({
 			secret: 'shhhh, very secret',
 			resave: true,
-			saveUninitialized: true
+			saveUninitialized: true,
+			cookie: {
+				secure: true,
+				sameSite: 'none'
+			}
 		}));
 
 		var expressWs = Node.require('express-ws')(server);
@@ -360,7 +364,7 @@ class Main {
 		});
 
 		/**
-		 * @api {post} /wsTicket [Authenticated] wsTicket
+		 * @api {get} /wsTicket [Authenticated] wsTicket
 		 * @apiDescription Get a ticket for websocket access. The ticket must be sent using the websocket /message route and be the first message.
 		 * @apiName wsTicket
 		 * @apiGroup Websocket
@@ -399,7 +403,6 @@ class Main {
 		trace('Server running at https://localhost:${port}/');
 		Node.process.on('SIGTERM', function onSigterm() {
 			trace('Got SIGTERM. Graceful shutdown start');
-			connection.end();
 		});
 	}
 }

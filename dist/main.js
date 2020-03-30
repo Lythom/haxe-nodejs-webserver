@@ -168,8 +168,7 @@ Main.__name__ = true;
 Main.main = function() {
 	require("dotenv").config();
 	var cors = require("cors");
-	var connection = Main.mysqlDB.createConnection({ host : process.env["MYSQL_ADDON_HOST"] != null ? process.env["MYSQL_ADDON_HOST"] : process.env["DB_HOST"], user : process.env["MYSQL_ADDON_USER"] != null ? process.env["MYSQL_ADDON_USER"] : process.env["DB_USER"], password : process.env["MYSQL_ADDON_PASSWORD"] != null ? process.env["MYSQL_ADDON_PASSWORD"] : process.env["DB_PASSWORD"], database : process.env["MYSQL_ADDON_DB"] != null ? process.env["MYSQL_ADDON_DB"] : process.env["DB_NAME"]});
-	connection.connect();
+	var connection = Main.mysqlDB.createPool({ host : process.env["MYSQL_ADDON_HOST"] != null ? process.env["MYSQL_ADDON_HOST"] : process.env["DB_HOST"], user : process.env["MYSQL_ADDON_USER"] != null ? process.env["MYSQL_ADDON_USER"] : process.env["DB_USER"], password : process.env["MYSQL_ADDON_PASSWORD"] != null ? process.env["MYSQL_ADDON_PASSWORD"] : process.env["DB_PASSWORD"], database : process.env["MYSQL_ADDON_DB"] != null ? process.env["MYSQL_ADDON_DB"] : process.env["DB_NAME"]});
 	var server = new js_npm_Express();
 	server.use(js_npm_express_BodyParser.json({ limit : "5mb", type : "application/json"}));
 	server.use(cors({ credentials : true, origin : function(req,callback) {
@@ -177,11 +176,11 @@ Main.main = function() {
 	}}));
 	server.use(new js_npm_express_Static("wsclient"));
 	server.use("/doc",new js_npm_express_Static("generated-doc"));
-	server.use(new js_npm_express_Session({ secret : "shhhh, very secret", resave : true, saveUninitialized : true}));
+	server.use(new js_npm_express_Session({ secret : "shhhh, very secret", resave : true, saveUninitialized : true, cookie : { secure : true, sameSite : "none"}}));
 	var expressWs = (require("express-ws"))(server);
 	expressWs.app.ws("/",function(socket,req1) {
 		var username = null;
-		console.log("src/Main.hx:74:","User connected");
+		console.log("src/Main.hx:77:","User connected");
 		socket.on("close",function() {
 			Main.sockets.remove(socket);
 			if(username == null) {
@@ -196,7 +195,7 @@ Main.main = function() {
 			}
 		});
 		socket.on("message",function(msg) {
-			console.log("src/Main.hx:103:","message: " + Std.string(msg));
+			console.log("src/Main.hx:106:","message: " + Std.string(msg));
 			if(username == null) {
 				var _this = Main.tickets;
 				var key = msg;
@@ -207,9 +206,9 @@ Main.main = function() {
 					Main.tickets.remove(msg);
 					Main.sockets.add(socket);
 					socket.send("Bienvenue sur le chat " + username,null);
-					console.log("src/Main.hx:114:","User authenticated : " + username);
+					console.log("src/Main.hx:117:","User authenticated : " + username);
 				} else {
-					console.log("src/Main.hx:116:","Please provide a ticket first to log in.");
+					console.log("src/Main.hx:119:","Please provide a ticket first to log in.");
 					socket.send("Please provide a ticket first to log in.",null);
 					socket.close();
 				}
@@ -253,7 +252,7 @@ Main.main = function() {
 							break;
 						case 1:
 							var err = createTokenResult.err;
-							console.log("src/Main.hx:186:",err);
+							console.log("src/Main.hx:189:",err);
 							res1.send(500,err.message);
 							break;
 						}
@@ -266,7 +265,7 @@ Main.main = function() {
 					break;
 				case 3:
 					var err1 = result.err;
-					console.log("src/Main.hx:178:",err1);
+					console.log("src/Main.hx:181:",err1);
 					res1.send(500,err1.message);
 					break;
 				}
@@ -311,7 +310,7 @@ Main.main = function() {
 					break;
 				case 3:
 					var err3 = result1.err;
-					console.log("src/Main.hx:230:",err3);
+					console.log("src/Main.hx:233:",err3);
 					res2.send(500,err3.message);
 					break;
 				}
@@ -453,10 +452,9 @@ Main.main = function() {
 		port = Std.parseInt(process.env["PORT"]);
 	}
 	server.listen(port);
-	console.log("src/Main.hx:400:","Server running at https://localhost:" + port + "/");
+	console.log("src/Main.hx:403:","Server running at https://localhost:" + port + "/");
 	var onSigterm = function() {
-		console.log("src/Main.hx:402:","Got SIGTERM. Graceful shutdown start");
-		connection.end();
+		console.log("src/Main.hx:405:","Got SIGTERM. Graceful shutdown start");
 	};
 	process.on("SIGTERM",onSigterm);
 };
