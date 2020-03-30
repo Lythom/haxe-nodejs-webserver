@@ -176,11 +176,11 @@ Main.main = function() {
 	}}));
 	server.use(new js_npm_express_Static("wsclient"));
 	server.use("/doc",new js_npm_express_Static("generated-doc"));
-	server.use(new js_npm_express_Session({ secret : "shhhh, very secret", resave : true, saveUninitialized : true, cookie : { secure : true, sameSite : "none"}}));
+	server.use(new js_npm_express_Session({ secret : "shhhh, very secret", resave : true, saveUninitialized : true, cookie : { sameSite : "none"}}));
 	var expressWs = (require("express-ws"))(server);
 	expressWs.app.ws("/",function(socket,req1) {
 		var username = null;
-		console.log("src/Main.hx:77:","User connected");
+		console.log("src/Main.hx:76:","User connected");
 		socket.on("close",function() {
 			Main.sockets.remove(socket);
 			if(username == null) {
@@ -195,7 +195,7 @@ Main.main = function() {
 			}
 		});
 		socket.on("message",function(msg) {
-			console.log("src/Main.hx:106:","message: " + Std.string(msg));
+			console.log("src/Main.hx:105:","message: " + Std.string(msg));
 			if(username == null) {
 				var _this = Main.tickets;
 				var key = msg;
@@ -206,9 +206,9 @@ Main.main = function() {
 					Main.tickets.remove(msg);
 					Main.sockets.add(socket);
 					socket.send("Bienvenue sur le chat " + username,null);
-					console.log("src/Main.hx:117:","User authenticated : " + username);
+					console.log("src/Main.hx:116:","User authenticated : " + username);
 				} else {
-					console.log("src/Main.hx:119:","Please provide a ticket first to log in.");
+					console.log("src/Main.hx:118:","Please provide a ticket first to log in.");
 					socket.send("Please provide a ticket first to log in.",null);
 					socket.close();
 				}
@@ -252,7 +252,7 @@ Main.main = function() {
 							break;
 						case 1:
 							var err = createTokenResult.err;
-							console.log("src/Main.hx:189:",err);
+							console.log("src/Main.hx:188:",err);
 							res1.send(500,err.message);
 							break;
 						}
@@ -265,7 +265,7 @@ Main.main = function() {
 					break;
 				case 3:
 					var err1 = result.err;
-					console.log("src/Main.hx:181:",err1);
+					console.log("src/Main.hx:180:",err1);
 					res1.send(500,err1.message);
 					break;
 				}
@@ -310,7 +310,7 @@ Main.main = function() {
 					break;
 				case 3:
 					var err3 = result1.err;
-					console.log("src/Main.hx:233:",err3);
+					console.log("src/Main.hx:232:",err3);
 					res2.send(500,err3.message);
 					break;
 				}
@@ -452,9 +452,9 @@ Main.main = function() {
 		port = Std.parseInt(process.env["PORT"]);
 	}
 	server.listen(port);
-	console.log("src/Main.hx:403:","Server running at https://localhost:" + port + "/");
+	console.log("src/Main.hx:402:","Server running at https://localhost:" + port + "/");
 	var onSigterm = function() {
-		console.log("src/Main.hx:405:","Got SIGTERM. Graceful shutdown start");
+		console.log("src/Main.hx:404:","Got SIGTERM. Graceful shutdown start");
 	};
 	process.on("SIGTERM",onSigterm);
 };
